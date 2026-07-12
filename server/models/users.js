@@ -46,7 +46,6 @@ const userSchema = new mongoose.Schema({
   college: String,
   locality: {
     type: String,
-    enum: JAIPUR_LOCALITIES,
   },
   createdAt: {
     type: Date,

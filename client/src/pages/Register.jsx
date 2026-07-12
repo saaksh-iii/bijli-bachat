@@ -71,19 +71,18 @@ export default function Register() {
           ))}
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Locality</label>
-            <select
-              name="locality"
-              value={form.locality}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Select your locality</option>
-              {LOCALITIES.map((loc) => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
+           <div>
+  <label className="mb-1 block text-sm font-medium text-gray-700">Locality</label>
+  <input
+    type="text"
+    name="locality"
+    value={form.locality}
+    onChange={handleChange}
+    required
+    placeholder="e.g. Malviya Nagar"
+    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+  />
+</div>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
