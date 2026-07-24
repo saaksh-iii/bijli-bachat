@@ -13,17 +13,20 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [message, setMessage] = useState('');
+  const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [actionsRes, logsRes] = await Promise.all([
+        const [actionsRes, logsRes, recsRes] = await Promise.all([
           API.get('/logs/actions'),
           API.get('/logs/me'),
+          API.get('/logs/recommendations'),
         ]);
         setActions(actionsRes.data);
         setLogs(logsRes.data.logs);
         setStreak(logsRes.data.streak);
+        setRecommendations(recsRes.data);
 
         const today = new Date().toDateString();
         const todayLog = logsRes.data.logs.find(
@@ -96,7 +99,31 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <h2 className="mb-3 font-semibold text-gray-700">What did you do today?</h2>
+            {recommendations.length > 0 && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🤖</span>
+                  <h2 className="font-semibold text-gray-700">Today's picks for you</h2>
+                </div>
+                <div className="space-y-3">
+                  {recommendations.map((action) => (
+                    <button
+                      key={action.id}
+                      onClick={() => handleLog(action.id)}
+                      disabled={posting}
+                      className="w-full rounded-xl bg-green-50 border border-green-300 p-4 text-left shadow-sm transition hover:shadow-md disabled:opacity-50"
+                    >
+                      <p className="font-medium text-gray-800">{action.label}</p>
+                      <p className="mt-1 text-sm text-green-600">
+                        Saves {action.kwhSaved} kWh · ₹{(action.kwhSaved * 6.5).toFixed(2)} · {(action.kwhSaved * 0.82).toFixed(2)} kg CO₂
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <h2 className="mb-3 font-semibold text-gray-700">All actions</h2>
             {message && (
               <p className="mb-3 rounded-lg bg-green-100 px-4 py-2 text-sm text-green-800">
                 {message}

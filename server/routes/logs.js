@@ -93,4 +93,48 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+router.get('/recommendations', protect, async (req, res) => {
+  try {
+    // Get last 7 days of logs for this user
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentLogs = await DailyLog.find({
+      userId: req.userId,
+      date: { $gte: sevenDaysAgo }
+    });
+
+    const recentActionIds = recentLogs.map(l => l.actionId);
+    const yesterdayLog = recentLogs.find(l => {
+      const logDate = new Date(l.date);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return logDate.toDateString() === yesterday.toDateString();
+    });
+
+    // Score each action
+    const scored = ACTIONS.map(action => {
+      let score = action.kwhSaved * 10; // base score = impact
+      
+      const timesLogged = recentLogs.filter(l => l.actionId === action.id).length;
+      if (timesLogged === 0) score += 50; // never done = high priority
+      if (timesLogged === 1) score += 20;
+      if (yesterdayLog?.actionId === action.id) score -= 30; // avoid repeat
+      
+      return { ...action, score };
+    });
+
+    // Sort by score, return top 3
+    const recommendations = scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(({ score, ...action }) => action);
+
+    return res.status(200).json(recommendations);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
